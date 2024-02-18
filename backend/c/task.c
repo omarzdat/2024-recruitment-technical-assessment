@@ -22,7 +22,29 @@ struct File {
  */
 char **leafFiles(struct File *files, int numFiles, int *numLeafFiles) {
     *numLeafFiles = 0;
-    return malloc(0 * sizeof(char *));
+    
+    // Allocate memory for an array of pointers to store file names
+    char **leafFileNames = malloc(numFiles * sizeof(char *));
+    
+    for (int i = 0; i < numFiles; i++) {
+        bool isLeafFile = true;
+
+        // Check if the current file has any children
+        for (int j = 0; j < numFiles; j++) {
+            if (files[j].parent == files[i].id) {
+                isLeafFile = false;
+                break;
+            }
+        }
+
+        // If the file is a leaf file, copy its name to the result array
+        if (isLeafFile) {
+            leafFileNames[*numLeafFiles] = strdup(files[i].name);
+            (*numLeafFiles)++;
+        }
+    }
+
+    return leafFileNames;
 }
 
 /**
