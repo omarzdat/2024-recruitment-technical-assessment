@@ -16,7 +16,6 @@ struct File {
     int size;
 };
 
- // Count the occurrences of each category
 struct CategoryCount {
     char name[MAX_STRING_LEN];
     int count;
@@ -24,20 +23,33 @@ struct CategoryCount {
 
 int compareCategoryCounts(const void *a, const void *b);
 
-/**
- * Task 1
- * Returned list should contain copies of the names e.g. through strdup()
- */
+char **leafFiles(struct File *files, int numFiles, int *numLeafFiles);
+char **kLargestCategories(struct File *files, int numFiles, int k, int *numReturned);
+int largestFileSize(struct File *files, int numFiles);
+
+int calculateTotalSize(struct File *files, int numFiles, int fileIndex);
+
+int compareCategoryCounts(const void *a, const void *b) {
+    const struct CategoryCount *countA = (const struct CategoryCount *)a;
+    const struct CategoryCount *countB = (const struct CategoryCount *)b;
+
+    if (countA->count > countB->count) {
+        return -1;
+    } else if (countA->count < countB->count) {
+        return 1;
+    }
+
+    return strcmp(countA->name, countB->name);
+}
+
 char **leafFiles(struct File *files, int numFiles, int *numLeafFiles) {
     *numLeafFiles = 0;
-    
-    // Allocate memory for an array of pointers to store file names
+
     char **leafFileNames = malloc(numFiles * sizeof(char *));
-    
+
     for (int i = 0; i < numFiles; i++) {
         bool isLeafFile = true;
 
-        // Check if the current file has any children
         for (int j = 0; j < numFiles; j++) {
             if (files[j].parent == files[i].id) {
                 isLeafFile = false;
@@ -45,7 +57,6 @@ char **leafFiles(struct File *files, int numFiles, int *numLeafFiles) {
             }
         }
 
-        // If the file is a leaf file, copy its name to the result array
         if (isLeafFile) {
             leafFileNames[*numLeafFiles] = strdup(files[i].name);
             (*numLeafFiles)++;
@@ -55,10 +66,6 @@ char **leafFiles(struct File *files, int numFiles, int *numLeafFiles) {
     return leafFileNames;
 }
 
-/**
- * Task 2
- * Returned list should contain copies of the categories e.g. through strdup()
- */
 char **kLargestCategories(struct File *files, int numFiles, int k, int *numReturned) {
     struct CategoryCount categoryCounts[MAX_CATEGORIES];
     int numCategories = 0;
@@ -67,7 +74,6 @@ char **kLargestCategories(struct File *files, int numFiles, int k, int *numRetur
         for (int j = 0; j < files[i].numCategories; j++) {
             char *category = files[i].categories[j];
 
-            // Check if the category is already counted
             int categoryIndex;
             for (categoryIndex = 0; categoryIndex < numCategories; categoryIndex++) {
                 if (strcmp(category, categoryCounts[categoryIndex].name) == 0) {
@@ -75,7 +81,6 @@ char **kLargestCategories(struct File *files, int numFiles, int k, int *numRetur
                 }
             }
 
-            // If the category is not found, add it to the counts
             if (categoryIndex == numCategories) {
                 strncpy(categoryCounts[numCategories].name, category, MAX_STRING_LEN);
                 categoryCounts[numCategories].count = 0;
@@ -86,14 +91,11 @@ char **kLargestCategories(struct File *files, int numFiles, int k, int *numRetur
         }
     }
 
-    // Sort categories by count (descending) and then alphabetically
     qsort(categoryCounts, numCategories, sizeof(struct CategoryCount), compareCategoryCounts);
 
-    // Create the result array
     char **resultCategories = malloc(k * sizeof(char *));
     *numReturned = k;
 
-    // Copy the category names to the result array
     for (int i = 0; i < k; i++) {
         resultCategories[i] = strdup(categoryCounts[i].name);
     }
@@ -101,41 +103,24 @@ char **kLargestCategories(struct File *files, int numFiles, int k, int *numRetur
     return resultCategories;
 }
 
-// Helper function to compare CategoryCount structures for qsort
-int compareCategoryCounts(const void *a, const void *b) {
-    const struct CategoryCount *countA = (const struct CategoryCount *)a;
-    const struct CategoryCount *countB = (const struct CategoryCount *)b;
+int calculateTotalSize(struct File *files, int numFiles, int fileIndex) {
+    int totalSize = files[fileIndex].size;
 
-    // compare by count
-    if (countA->count > countB->count) {
-        return -1;
-    } else if (countA->count < countB->count) {
-        return 1;
+    for (int j = 0; j < numFiles; j++) {
+        if (files[j].parent == files[fileIndex].id) {
+            totalSize += calculateTotalSize(files, numFiles, j);
+        }
     }
 
-    // if counts are equal then compare alphabetically
-    return strcmp(countA->name, countB->name);
+    return totalSize;
 }
 
-
-/**
- * Task 3
- */
 int largestFileSize(struct File *files, int numFiles) {
     int largestSize = 0;
 
-    // Iterate through all files and find the one with the largest total size
     for (int i = 0; i < numFiles; i++) {
-        int totalSize = files[i].size;
+        int totalSize = calculateTotalSize(files, numFiles, i);
 
-        // If the file has children, add their sizes to the total
-        for (int j = 0; j < numFiles; j++) {
-            if (files[j].parent == files[i].id) {
-                totalSize += files[j].size;
-            }
-        }
-
-        // Update the largest size if the current file has a larger total size
         if (totalSize > largestSize) {
             largestSize = totalSize;
         }
@@ -143,8 +128,6 @@ int largestFileSize(struct File *files, int numFiles) {
 
     return largestSize;
 }
-
-
 
 int qsortStrcmp(const void *a, const void *b) {
     return strcmp(*(char **)a, *(char **)b);
