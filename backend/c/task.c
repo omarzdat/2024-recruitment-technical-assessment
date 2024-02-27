@@ -42,6 +42,11 @@ int compareCategoryCounts(const void *a, const void *b) {
     return strcmp(countA->name, countB->name);
 }
 
+
+/**
+ * Task 1
+ * Returned list should contain copies of the names e.g. through strdup()
+ */
 char **leafFiles(struct File *files, int numFiles, int *numLeafFiles) {
     *numLeafFiles = 0;
 
@@ -66,6 +71,10 @@ char **leafFiles(struct File *files, int numFiles, int *numLeafFiles) {
     return leafFileNames;
 }
 
+/**
+ * Task 2
+ * Returned list should contain copies of the categories e.g. through strdup()
+ */
 char **kLargestCategories(struct File *files, int numFiles, int k, int *numReturned) {
     struct CategoryCount categoryCounts[MAX_CATEGORIES];
     int numCategories = 0;
@@ -115,6 +124,9 @@ int calculateTotalSize(struct File *files, int numFiles, int fileIndex) {
     return totalSize;
 }
 
+/**
+ * Task 3
+ */
 int largestFileSize(struct File *files, int numFiles) {
     int largestSize = 0;
 
